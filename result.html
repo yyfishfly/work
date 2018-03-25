@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Simple Map</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
+    <style>
+      html, body, #map {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+    <script src="https://js.arcgis.com/3.23/"></script>
+      
+    <script >
+         var map;
+         require(["esri/map", "dojo/domReady!"], function(Map) {
+        map = new Map("map", {
+          //basemap: "oceans", 
+          //center: [-122.45, 37.75], 
+        });   
+      });
+         function get(){
+                var jd=parseFloat(document.getElementById("jingdu").value.toString());
+                var wd=parseFloat(document.getElementById("weidu").value.toString());
+                var bm = document.getElementById("ditu").value;
+                var zm = document.getElementById("size").value
+                map.setBasemap(bm);
+                map.centerAndZoom([jd,wd],zm);
+         }
+        
+       
+       
+        
+    </script>
+     
+      
+  </head>
+  <body>
+      精度：
+    <input id="jingdu" type="text"   />
+      纬度：
+    <input id="weidu" type="text"   /> 
+  <select id="size"  name="size"  >  
+  <option   value="5">级别5</option>    
+  <option   value="8">级别8</option>   
+  <option   value="15">级别15</option>
+  <option   value="20">级别20</option>
+</select>
+  <select id="ditu"  name="ditu"  >    
+  <option   value="streets">streets</option>   
+  <option   value="dark-gray">dark-gray</option>
+  <option   value="osm">osm</option>
+  <option   value="topo">topo</option>
+</select>
+    <input id="get"  type="button"  value="显示对应范围" onclick="get()"/>   
+    <div id="map"></div>
+  </body>
+</html>
