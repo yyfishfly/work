@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>  
+<head>  
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Simple Map</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/3.23/dijit/themes/claro/claro.css"> 
+    <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
+    <style>
+      html, body, #map,#map2 {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #FFF;
+            overflow: hidden;
+            font-family: "Trebuchet MS";
+        }
+        #map,#map2{
+            float:left;
+            width: 49.5%;
+        }
+        #map{
+            border-right: 2px solid #999;
+        }
+		    
+        #feedback {
+         background:#fff;
+         color: #444;
+         position: absolute;
+         font-family: arial;
+         height: 150px;
+         left: 60px;
+         margin: 5px;
+         padding: 10px;
+         top: 40px;
+         width: 150px;
+         <!-- z-index: 40; -->
+      }
+        /*#map {
+            height: 100%;
+            width: 100%;
+            float:left;
+            margin: 0;
+            padding: 0;
+            z-index: 1;
+        }*/
+       /* #map3{
+            position: absolute;
+            top: 0px;
+            float:right;
+            width: 100%;
+            height:100%;
+            border: 1px solid black;
+            z-index: 2;
+        }*/
+    </style> 
+<select id="style" style="width:100px;">   
+  <option value="">请选择风格：</option>
+  <option   value="osm">osm</option>   
+  <option   value="gray">gray</option>
+  <option   value="topo">topo</option>
+  <option value="oceans">oceans</option>
+  <option value="satellite">satellite</option>
+  <option value="streets">streets</option>
+  <option value="hybrid">hybrid</option>
+  <option value="national-geographic">national-geographic</option>  
+ </select>
+    <input type='button' value='切换底图' onclick="choose_basemap()"/>
+    <script src="https://js.arcgis.com/3.23/"></script>
+    <script type="text/javascript"> 
+        
+        
+      var layer, map, map2,visible = [];     // 创建图层，地图和显示数组      
+          function init() { 
+          require(["esri/map", "esri/layers/ArcGISTiledMapServiceLayer","esri/layers/KMLLayer","esri/layers/ArcGISDynamicMapServiceLayer","esri/geometry/webMercatorUtils","esri/dijit/Scalebar","esri/layers/FeatureLayer",
+        "dojo/parser", "dojo/on", "dojo/domReady!"], function(Map,ArcGISTiledMapServiceLayer,KMLLayer, ArcGISDynamicMapServiceLayer,webMercatorUtils,Scalebar,FeatureLayer,parser,on) {
+               parser.parse();
+          map = new Map("map", {
+          basemap: "topo",  
+          center: [-122.45, 37.75], 
+          zoom: 5
+        });
+            
+          map2 = new Map("map2", {
+          basemap: "topo",  
+          center: [-122.45, 37.75], // longitude, latitude
+          zoom: 5
+        });
+              
+              
+          /************************动态添加图层*********************************/    
+          dynamicMapServiceLayer = new ArcGISDynamicMapServiceLayer(
+                "http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StateCityHighway_USA/MapServer");
+              if (dynamicMapServiceLayer.loaded) {        
+                buildLayerList(dynamicMapServiceLayer);     
+             
+               		   
+            }else{
+                dojo.connect(dynamicMapServiceLayer,"onLoad",buildLayerList);		
+            }  
+			dynamicMapServiceLayer.on("load",function(e){
+		    
+		    alert("ok");	
+        }); 
+              
+          //构建图层函数    
+          function buildLayerList(layer) {
+            var infos = layer.layerInfos, info;
+            var items = [];
+            for (var i=0,j=infos.length;i<j;i++) {
+                info = infos[i];
+                if (info.defaultVisibility) {
+                    visible.push(info.id);
+                }
+                items[i] = "<input type='checkbox' class='list_item' checked='" + (info.defaultVisibility ? "checked" : "") + "' id='" + info.id +"' onclick='updateLayerVisibility();'/><label for='" +info.id+ "'>" +info.name+ "</label>";          
+            }
+            dojo.byId("layerList").innerHTML = items.join();
+            
+            layer.setVisibleLayers(visible);    // setVisibleLayers(ids, doNotRefresh?)  默认为false（及时刷新）
+            map.addLayer(layer);             // 将图层加入到地图中 
+        
+        }
+		
+		   
+          /*********************联动*************************/   
+          var event1,event2;
+          //鼠标移入map事件
+          map.on("mouse-over",function(){
+          event1=map.on("extent-change",function(){
+              map2.setExtent(map.extent);
+                        });
+                    });
+           //鼠标移出map事件
+           map.on("mouse-out",function(){
+           if(event1!=null)
+                        {
+                            
+                            event1.remove();
+                            event1=null;
+                        }
+                    });
+           //鼠标移入map2事件
+           map2.on("mouse-over",function(){
+           event2=map2.on("extent-change",function(){
+                            map.setExtent(map2.extent);
+                        });
+                    });
+           //鼠标移出map2事件
+           map2.on("mouse-out",function(){
+           if(event2!=null)
+                        {
+                            event2.remove();
+                            event2=null;
+                        }
+                    })
+              
+              
+              
+       /****************获取鼠标位置*****************/       
+       map.on("mouse-move", function(e){
+       var mp = e.mapPoint;
+       var n = webMercatorUtils.xyToLngLat(mp.x, mp.y);
+        dojo.byId("div").innerHTML = n;
+    });  
+              
+    
+        /****************比例尺****************/
+        var scalebar = new Scalebar({
+        map: map,
+        attachTo: "bottom-left",
+        scalebarStyle: "ruler",
+        scalebarUnit: "metric"
+        });         
+      });
+        
+      
+          }
+        
+        
+        
+            //更新图层
+            function updateLayerVisibility() {
+            var inputs = dojo.query(".list_item"), input;    // 使用dojo.query()方法查询 
+            visible = [];
+            for (var i=0,j=inputs.length;i<j;i++) {
+                if(inputs[i].checked) {
+                    visible.push(inputs[i].id);
+                }           
+            }
+            dynamicMapServiceLayer.setVisibleLayers(visible);
+        
+        }
+       /***************切换底图*****************/ 
+       function choose_basemap() {
+             var obj= document.getElementById("style").value;
+             map.setBasemap(obj);
+             map2.setBasemap(obj);
+         }
+        
+      /******************卷帘******************/
+      function btn_swipe(){
+          window.open("swipe.html");
+      }
+   dojo.addOnLoad(init);     // 初始化加载  
+     
+    </script>
+
+</head>  
+  
+<body  >
+
+<span id="layer_list">
+    <button type="button" onclick="btn_swipe()">卷帘</button>
+    </span><br />  
+<br />  
+    
+    <div id="map"  style="position: relative; width: 50%; height: 90%;" ></div>
+    <div id="map2"></div>
+    
+    <div id="scalebar" style="position:absolute;left:100px;top:530px;"></div>
+    
+    <div id="div" style="position:absolute;bottom:0;margin-left:-100px;left:20%;"></div>
+        <div id="feedback" class="shadow">
+               <div><strong>Add Map Layers</strong></div>            
+               <div id="layerList"></div>
+         </div>
+</body>  
+</html>  
