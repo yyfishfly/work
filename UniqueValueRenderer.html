@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>UniqueValueRenderer</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/3.24/esri/css/esri.css">
+    <style>
+      html, body, #map{
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+    <script src="https://js.arcgis.com/3.24/"></script>
+    <script>
+      var map,csv;
+         require([
+        "esri/map", 
+        "esri/layers/CSVLayer",
+        "esri/Color",
+        "esri/renderers/UniqueValueRenderer",     
+        "esri/symbols/SimpleMarkerSymbol",
+        "esri/symbols/SimpleLineSymbol",
+        "esri/renderers/SimpleRenderer",
+		"esri/renderers/ClassBreaksRenderer",
+        "esri/renderers/HeatmapRenderer",
+        "esri/InfoTemplate",
+        "esri/config",
+        "dojo/domReady!"
+      ], function(
+        Map, CSVLayer, Color,UniqueValueRenderer, SimpleMarkerSymbol,SimpleLineSymbol, SimpleRenderer, ClassBreaksRenderer,HeatmapRenderer,InfoTemplate, esriConfig
+      ) {
+        
+        // Use CORS
+        esriConfig.defaults.io.corsEnabledServers.push("yyfishfly.github.io"); // supports CORS
+        // Use proxy if the server doesn't support CORS
+        // esriConfig.defaults.io.proxyUrl = "/proxy/";  
+        
+        map = new Map("map", {
+          basemap: "gray",
+          center: [ -60, -10 ],
+          zoom: 4 
+        });
+        csv = new CSVLayer("https://yyfishfly.github.io/work/all_month2.csv", {
+          copyright: "USGS.gov"
+        });
+          
+       
+          //var defaultSymbol = new SimpleMarkerSymbol().setStyle(SimpleMarkerSymbol.STYLE_NULL);
+          //defaultSymbol.outline.setStyle(SimpleLineSymbol.STYLE_NULL);
+
+          //create renderer
+          var marker = new SimpleMarkerSymbol();    
+        
+          var renderer = new UniqueValueRenderer(marker, "status");    
+          renderer.addValue("automatic", new SimpleMarkerSymbol().setColor(new Color([0, 255, 0, 1])));
+          renderer.addValue("reviewed", new SimpleMarkerSymbol().setColor(new Color([250, 0, 0, 1])));
+          
+         csv.setRenderer(renderer);
+         var template = new InfoTemplate("${type}","${status}");
+         csv.setInfoTemplate(template);
+         map.addLayer(csv); 
+          
+        
+      });
+    </script>
+  </head>
+  
+  <body>
+    <div id="map"></div>
+    
+  </body>
+
+</html>
+ 
