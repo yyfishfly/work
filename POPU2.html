@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>POPU2 Map</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
+    <style>
+     html, body{
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+        #map{
+        height: 90%;
+        width: 100%;
+        margin: 0;
+        padding:0;}
+    </style>
+    <script src="https://js.arcgis.com/3.23/"></script>
+	<script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+    <script>
+      var map;
+      require(["esri/map",   
+            "esri/layers/GraphicsLayer",  
+            "esri/symbols/SimpleMarkerSymbol",  
+            "esri/symbols/SimpleLineSymbol",  
+			"esri/symbols/SimpleFillSymbol", 
+            "esri/renderers/SimpleRenderer",
+            "esri/renderers/UniqueValueRenderer",
+            "esri/Color",
+             "dojo/on",
+            "esri/geometry/Point",  
+            "esri/graphic",  
+            "dojo/domReady!"  ], function(Map,   
+            GraphicsLayer,  
+            SimpleMarkerSymbol,  
+            SimpleLineSymbol, 
+            SimpleFillSymbol, 			
+            SimpleRenderer,
+            UniqueValueRenderer,                               
+            Color,on, Point, Graphic) {
+          
+            map = new Map("map", {
+            basemap: "gray",
+            center: [119, 30],
+            zoom: 4
+    });
+	
+		   
+			var gLayer = new GraphicsLayer(); 	
+            var Layer = new GraphicsLayer(); 
+			map.addLayer(gLayer); 
+            map.addLayer(Layer); 
+            map.on("load",function(){  
+                $.get("https://yyfishfly.github.io/work/work.json",null,function(result){  
+                    var features = result.features;  
+                    for(var i=0;i<features.length;i++){  
+                        var feature = features[i]; 
+                        var graphic  = new Graphic(feature);
+                        var graphic1  = new Graphic(feature);
+                            gLayer.add(graphic);  
+                            Layer.add(graphic1);  
+                        
+                        
+                    }
+      var line = new SimpleLineSymbol();
+      line.setStyle(SimpleLineSymbol.STYLE_NULL);
+      var fill = new SimpleFillSymbol();
+      fill.setOutline(line);
+      fill.setColor(new Color([0, 255, 255, 0.25]));             
+      var re = new SimpleRenderer(fill);
+                    
+var line1 = new SimpleLineSymbol();
+line1.setColor(new Color([255, 190, 190, 1]));
+var marker = new SimpleMarkerSymbol();
+marker.setOutline(line1);
+marker.setColor(new Color([255, 0, 0, 1]));
+        
+        var renderer = new SimpleRenderer(marker);
+                    
+        renderer.setSizeInfo({
+          field: "POPU",
+          minSize: 10,
+          maxSize: 25,
+          minDataValue: 0,
+          maxDataValue: 12000,
+          valueUnit: "unknown"
+        });
+		
+              gLayer.setRenderer(renderer);
+               Layer.setRenderer(re);       
+                });  
+            });	
+        });  
+    </script>
+  </head>
+
+  <body>
+       
+    <div id="map"></div>
+   
+  </body>
+</html>
